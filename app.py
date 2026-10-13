@@ -328,8 +328,10 @@ def main() -> None:
         )
 
     missing = [n for n, v in [("ORACLE_USER", db_user), ("ORACLE_PASSWORD", db_password), ("ORACLE_DSN", db_dsn)] if not v]
+    if not (api_key or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
+        missing.insert(0, "ANTHROPIC_API_KEY")
     if missing:
-        st.error("DB 접속 정보가 없습니다: " + ", ".join(missing) + "  (README.md의 설정 방법 참고)")
+        st.error("접속 정보가 없습니다: " + ", ".join(missing) + "  (README.md의 설정 방법 참고)")
         st.stop()
     if not st.session_state.schema.strip():
         st.info("왼쪽에서 스키마를 불러오거나 schema.txt를 만들어 주세요. 스키마가 있어야 정확한 SQL이 나옵니다.")

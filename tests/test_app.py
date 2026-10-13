@@ -92,8 +92,20 @@ def test_gives_up_after_max_attempts(monkeypatch):
 
 def test_app_starts_without_config(monkeypatch):
     from streamlit.testing.v1 import AppTest
-    for k in ["ORACLE_USER", "ORACLE_PASSWORD", "ORACLE_DSN"]:
+    for k in ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ORACLE_USER", "ORACLE_PASSWORD", "ORACLE_DSN"]:
         monkeypatch.delenv(k, raising=False)
     at = AppTest.from_file(str(Path(app.__file__)), default_timeout=30).run()
     assert not at.exception
-    assert "DB 접속 정보가 없습니다" in at.error[0].value
+    assert "접속 정보가 없습니다" in at.error[0].value
+
+
+def test_app_reports_missing_api_key(monkeypatch):
+    from streamlit.testing.v1 import AppTest
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+    monkeypatch.setenv("ORACLE_USER", "u")
+    monkeypatch.setenv("ORACLE_PASSWORD", "p")
+    monkeypatch.setenv("ORACLE_DSN", "localhost:1521/X")
+    at = AppTest.from_file(str(Path(app.__file__)), default_timeout=30).run()
+    assert not at.exception
+    assert "ANTHROPIC_API_KEY" in at.error[0].value
